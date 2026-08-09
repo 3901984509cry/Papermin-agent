@@ -1,36 +1,60 @@
-# =============================================================================
-# config.py — PaperMind 全局配置
-# ⚠️ 标注的位置需要根据你的实际情况填写
-# =============================================================================
+"""PaperMind runtime configuration.
 
-# ── 火山引擎 API 配置 ─────────────────────────────────────────────────────────
-# 登录路径：火山引擎控制台 -> 豆包大模型 -> API Key 管理 -> 创建 API Key
-VOLC_API_KEY  = "ark-526c597e-e0a7-4716-8fae-94adf33015b6-52aa3"           # ⚠️ 填写你的火山引擎 API Key
+Secrets are loaded from environment variables. A local ``.env`` file is
+supported for development and is intentionally excluded from Git.
+"""
 
-# 登录路径：火山引擎控制台 -> 豆包大模型 -> 推理接入点 -> 创建接入点 -> 复制 Endpoint ID
-# 格式示例：ep-20240101120000-abcde
-VOLC_MODEL_ID = "ep-20260518212219-742cq"   # ⚠️ 填写你的模型 Endpoint ID
+import os
+import sys
+from pathlib import Path
 
-# 火山引擎 OpenAI 兼容接口地址（一般无需修改）
-VOLC_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
+from dotenv import load_dotenv
 
-# ── 模型参数 ──────────────────────────────────────────────────────────────────
-MODEL_TEMPERATURE = 0.3    # 温度（0=严谨，1=发散），论文理解推荐 0.2~0.4
-MODEL_MAX_TOKENS  = 4096   # 单次最大输出 token 数
 
-# ── Embedding 模型 ────────────────────────────────────────────────────────────
-# 首次运行会自动从 HuggingFace 下载（需联网）
-# 学术场景可换成 "allenai/scibert_scivocab_uncased"（效果更好但更慢）
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # ⚠️ 可按需修改
+PROJECT_ROOT = Path(__file__).resolve().parent
+load_dotenv(PROJECT_ROOT / ".env")
 
-# ── 知识库路径（自动创建，通常无需修改）──────────────────────────────────────
-KB_INDEX_PATH  = "memory/faiss.index"
-KB_CHUNKS_PATH = "memory/chunks.json"
+# Windows 的 GBK 终端无法显示部分图标字符，默认行为会直接抛出
+# UnicodeEncodeError。保留终端原编码，仅将无法编码的字符替换掉。
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(errors="replace")
 
-# ── RAG 检索参数 ──────────────────────────────────────────────────────────────
-TOP_K_RETRIEVAL = 5     # 每次检索返回的段落数
-CHUNK_SIZE      = 300   # 切块大小（字符数）
-CHUNK_OVERLAP   = 80    # 相邻块重叠字符数（保证上下文连贯）
 
-# ── 输出目录 ──────────────────────────────────────────────────────────────────
-OUTPUT_DIR = r"C:\Users\lenovo\Desktop\cry.穷的文件夹\PaperMind_代码\papermind\output"   # 生成的 docx/html 文件存放位置
+def _project_path_from_env(name: str, default_name: str) -> Path:
+    value = os.getenv(name, "").strip()
+    path = Path(value).expanduser() if value else PROJECT_ROOT / default_name
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    return path.resolve()
+
+
+# 火山引擎 OpenAI 兼容接口配置
+VOLC_API_KEY = os.getenv("VOLC_API_KEY", "").strip()
+VOLC_MODEL_ID = os.getenv("VOLC_MODEL_ID", "").strip()
+VOLC_BASE_URL = os.getenv(
+    "VOLC_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3"
+).strip()
+
+# 模型参数
+MODEL_TEMPERATURE = float(os.getenv("MODEL_TEMPERATURE", "0.3"))
+MODEL_MAX_TOKENS = int(os.getenv("MODEL_MAX_TOKENS", "4096"))
+
+# 首次使用时会从 Hugging Face 下载 Embedding 模型
+EMBEDDING_MODEL = os.getenv(
+    "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
+).strip()
+
+# 数据目录。相对路径以项目根目录为基准，确保从任意工作目录启动都可用。
+MEMORY_DIR = _project_path_from_env("PAPERMIND_MEMORY_DIR", "memory")
+OUTPUT_DIR = _project_path_from_env("PAPERMIND_OUTPUT_DIR", "output")
+MEMORY_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+KB_INDEX_PATH = str(MEMORY_DIR / "faiss.index")
+KB_CHUNKS_PATH = str(MEMORY_DIR / "chunks.json")
+
+# RAG 检索参数
+TOP_K_RETRIEVAL = int(os.getenv("TOP_K_RETRIEVAL", "5"))
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "300"))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "80"))

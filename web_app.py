@@ -17,11 +17,18 @@ import gradio as gr
 from agent import build_agent, ask
 from tools.knowledge_base import build_kb_from_parsed_paper, clear_paper_index
 from tools.parse_pdf import parse_pdf
-from config import OUTPUT_DIR
+from config import MEMORY_DIR, OUTPUT_DIR
 
 # ── 全局状态 ──────────────────────────────────────────────────────────────────
 _agent      = None
 _paper_name = "未加载"
+
+
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 def get_agent():
     global _agent
@@ -30,7 +37,7 @@ def get_agent():
     return _agent
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs("memory", exist_ok=True)
+os.makedirs(MEMORY_DIR, exist_ok=True)
 
 # ── 核心函数 ──────────────────────────────────────────────────────────────────
 
@@ -244,11 +251,11 @@ if __name__ == "__main__":
         print("✅ Agent 初始化完成")
     except Exception as e:
         print(f"⚠️  Agent 初始化失败：{e}")
-        print("   请检查 config.py 中的 VOLC_API_KEY 和 VOLC_MODEL_ID")
+        print("   请检查 .env 或系统环境变量中的 VOLC_API_KEY 和 VOLC_MODEL_ID")
 
     demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        inbrowser=True,
-        share=False,
+        server_name=os.getenv("GRADIO_SERVER_NAME", "0.0.0.0"),
+        server_port=int(os.getenv("GRADIO_SERVER_PORT", "7860")),
+        inbrowser=_env_flag("GRADIO_INBROWSER", True),
+        share=_env_flag("GRADIO_SHARE", False),
     )

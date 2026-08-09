@@ -114,7 +114,7 @@ def ask(agent_executor: AgentExecutor, user_input: str) -> str:
     except Exception as e:
         return (
             f"❌ Agent 执行出错：{e}\n"
-            "💡 请检查 config.py 中的 API Key 和 Endpoint ID"
+            "💡 请检查 .env 或系统环境变量中的 API Key 和 Endpoint ID"
         )
 
 

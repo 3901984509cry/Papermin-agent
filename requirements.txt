@@ -1,34 +1,31 @@
-# =============================================================================
-# requirements.txt — PaperMind 依赖清单
-# 安装命令：pip install -r requirements.txt
-# 建议在虚拟环境中安装：python -m venv venv && source venv/bin/activate
-# =============================================================================
+# PaperMind runtime dependencies (tested with Python 3.11)
 
-# ── LangChain 核心 ────────────────────────────────────────────────────────────
-langchain>=0.2.0
-langchain-openai>=0.1.0      # 火山引擎使用 OpenAI 兼容接口
-langchain-community>=0.2.0
+# LangChain 0.2 API used by agent.py
+langchain==0.2.17
+langchain-openai==0.1.25
+langchain-community==0.2.19
 
-# ── 火山引擎 SDK（可选，直接用 OpenAI 兼容接口也可以）─────────────────────────
-# volcengine-python-sdk        # ⚠️ 可选安装，仅在需要火山引擎专属功能时使用
+# Web interface. web_app.py uses the Gradio 3.x component API.
+gradio==3.50.2
+# Gradio 3.50 is incompatible with the newer Starlette template API.
+fastapi==0.104.1
+starlette==0.27.0
+pydantic==2.5.3
 
-# ── PDF 解析 ──────────────────────────────────────────────────────────────────
-PyMuPDF>=1.23.0              # fitz 库，解析 PDF 文本
+# Local configuration
+python-dotenv>=1.0,<2
 
-# ── 向量数据库 ────────────────────────────────────────────────────────────────
-faiss-cpu>=1.7.4             # FAISS 向量检索（CPU 版本）
-# faiss-gpu>=1.7.4           # ⚠️ 如果你有 GPU 可改用此版本
+# PDF parsing and generated Word documents
+PyMuPDF>=1.24,<2
+python-docx>=1.1,<2
 
-# ── Embedding 模型 ────────────────────────────────────────────────────────────
-sentence-transformers>=2.7.0  # 包含 all-MiniLM-L6-v2 等模型
-torch>=2.0.0                  # PyTorch（sentence-transformers 依赖）
+# Vector search and embeddings
+numpy>=1.24,<2
+faiss-cpu>=1.8,<2
+sentence-transformers==2.7.0
+transformers>=4.34,<4.46
+torch>=2.0,<3
 
-# ── Word 文档生成 ─────────────────────────────────────────────────────────────
-python-docx>=1.1.0
-
-# ── 网络请求 ──────────────────────────────────────────────────────────────────
-requests>=2.31.0              # arXiv API 调用
-httpx>=0.25.0                 # LangChain OpenAI 客户端依赖
-
-# ── 数值计算 ──────────────────────────────────────────────────────────────────
-numpy>=1.24.0
+# External APIs
+requests>=2.31,<3
+httpx>=0.27,<1

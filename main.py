@@ -48,10 +48,10 @@ def check_config():
     from config import VOLC_API_KEY, VOLC_MODEL_ID
 
     errors = []
-    if "your_api_key" in VOLC_API_KEY or not VOLC_API_KEY:
-        errors.append("❌ VOLC_API_KEY 未填写，请在 config.py 中填入你的火山引擎 API Key")
-    if "xxxxxxxx" in VOLC_MODEL_ID or not VOLC_MODEL_ID:
-        errors.append("❌ VOLC_MODEL_ID 未填写，请在 config.py 中填入你的 Endpoint ID")
+    if not VOLC_API_KEY:
+        errors.append("❌ VOLC_API_KEY 未配置，请在 .env 或系统环境变量中设置")
+    if not VOLC_MODEL_ID:
+        errors.append("❌ VOLC_MODEL_ID 未配置，请在 .env 或系统环境变量中设置")
 
     if errors:
         print("\n".join(errors))
